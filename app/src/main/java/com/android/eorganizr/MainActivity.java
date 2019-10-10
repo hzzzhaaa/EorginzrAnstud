@@ -4,29 +4,29 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.widget.Button;
+import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
-    private RecyclerView recyclerView;
-    private RecyclerView.Adapter mAdapter;
-    private RecyclerView.LayoutManager layoutManager;
+    TextView tvResultNama;
+        String resultNama;
+        Button btnLogout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        recyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
+        initComponents();
 
-        // use this setting to improve performance if you know that changes
-        // in content do not change the layout size of the RecyclerView
-        recyclerView.setHasFixedSize(true);
-
-        // use a linear layout manager
-        layoutManager = new LinearLayoutManager(this);
-        recyclerView.setLayoutManager(layoutManager);
-
-        // specify an adapter (see also next example)
-        mAdapter = new MyAdapter(myDataset);
-        recyclerView.setAdapter(mAdapter);
+        // untuk mendapatkan data dari activity sebelumnya, yaitu activity login.
+        Bundle extras = getIntent().getExtras();
+        if (extras != null)
+            resultNama = extras.getString("result_nama");
+        tvResultNama.setText(resultNama);
     }
-    // ...
+    private void initComponents(){
+        tvResultNama = (TextView) findViewById(R.id.tvResultNama);
+        btnLogout = (Button) findViewById(R.id.btnLogout);
+    }
+
 }
