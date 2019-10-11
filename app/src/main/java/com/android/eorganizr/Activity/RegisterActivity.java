@@ -1,4 +1,4 @@
-package com.android.eorganizr.userbase;
+package com.android.eorganizr.Activity;
 
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -11,7 +11,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.android.eorganizr.MainActivity;
 import com.android.eorganizr.R;
 
 import org.json.JSONException;
@@ -24,7 +23,8 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-import com.android.eorganizr.R;
+import com.android.eorganizr.Util.RetrofitUtil.ApiUtil;
+import com.android.eorganizr.Util.RetrofitUtil.BaseApiService;
 
 public class RegisterActivity extends AppCompatActivity {
     EditText etNama;
@@ -42,7 +42,7 @@ public class RegisterActivity extends AppCompatActivity {
         setContentView(R.layout.activity_register);
 
         mContext = this;
-        mApiService = utilsapi.getAPIService();
+        mApiService = ApiUtil.getAPIService();
         initComponents();
 
     }
@@ -76,7 +76,7 @@ public class RegisterActivity extends AppCompatActivity {
                                     JSONObject jsonRESULTS = new JSONObject(response.body().string());
                                     if (jsonRESULTS.getString("error").equals("false")){
                                         Toast.makeText(mContext, "BERHASIL REGISTRASI", Toast.LENGTH_SHORT).show();
-                                        startActivity(new Intent(mContext, loginactivity.class));
+                                        startActivity(new Intent(mContext, LoginActivity.class));
                                     } else {
                                         String error_message = jsonRESULTS.getString("error_msg");
                                         Toast.makeText(mContext, error_message, Toast.LENGTH_SHORT).show();

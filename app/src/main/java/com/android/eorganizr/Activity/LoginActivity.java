@@ -1,8 +1,10 @@
-package com.android.eorganizr.userbase;
+package com.android.eorganizr.Activity;
 
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,6 +15,8 @@ import android.widget.Toast;
 
 import com.android.eorganizr.MainActivity;
 import com.android.eorganizr.R;
+import com.android.eorganizr.Util.RetrofitUtil.ApiUtil;
+import com.android.eorganizr.Util.RetrofitUtil.BaseApiService;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -24,13 +28,12 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-import com.android.eorganizr.R;
-
-public class RegisterOrganizrActivity extends AppCompatActivity {
-    EditText etNama;
+public class LoginActivity extends AppCompatActivity {
     EditText etEmail;
     EditText etPassword;
+    Button btnLogin;
     Button btnRegister;
+    Button btnRegisterOrganizr;
     ProgressDialog loading;
 
     Context mContext;
@@ -39,46 +42,55 @@ public class RegisterOrganizrActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_register);
-
+        setContentView(R.layout.activity_login);
         mContext = this;
-        mApiService = utilsapi.getAPIService();
+        mApiService = ApiUtil.getAPIService();
         initComponents();
 
     }
     private void initComponents(){
-        etNama = (EditText) findViewById(R.id.etNama);
-        etEmail = (EditText) findViewById(R.id.etEmail);
-        etPassword = (EditText) findViewById(R.id.etPassword);
-        btnRegister = (Button) findViewById(R.id.btnRegister);
+        etEmail =  findViewById(R.id.etEmail);
+        etPassword = findViewById(R.id.etPassword);
+        btnLogin = findViewById(R.id.btnLogin);
+        btnRegister = findViewById(R.id.btnRegister);
+        btnRegisterOrganizr = findViewById(R.id.btnRegisterOrganizr);
 
-        btnRegister.setOnClickListener(new View.OnClickListener() {
+        btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 loading = ProgressDialog.show(mContext, null, "Harap Tunggu...", true, false);
-                requestRegisterOrganizr();
+                requestLogin();
+            }
+        });
+        btnRegister.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(mContext, RegisterActivity.class));
             }
         });
 
     }
-
-    private void requestRegisterOrganizr() {
-        mApiService.registerOrganizrRequest(etNama.getText().toString(),
-                etEmail.getText().toString(),
-                etPassword.getText().toString())
+    private void requestLogin(){
+        mApiService.loginRequest(etEmail.getText().toString(), etPassword.getText().toString())
                 .enqueue(new Callback<ResponseBody>() {
                     @Override
                     public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                         if (response.isSuccessful()){
-                            Log.i("debug", "onResponse: BERHASIL");
                             loading.dismiss();
                             try {
-                                JSONObject jsonRESULTS = new JSONObject(response.body().string());
-                                if (jsonRESULTS.getString("error").equals("false")){
-                                    Toast.makeText(mContext, "BERHASIL REGISTRASI", Toast.LENGTH_SHORT).show();
-                                    startActivity(new Intent(mContext, loginactivity.class));
+                                JSONObject jsonResponse = new JSONObject(response.body().string());
+                                if (jsonResponse.getString("error").equals("false")){
+                                    SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mContext);
+                                    SharedPreferences.Editor editor = settings.edit();
+                                    editor.putString("token", jsonResponse.getString("token"));
+                                    editor.commit();
+
+                                    Intent intent = new Intent(mContext, MainActivity.class);
+
+                                    startActivity(intent);
                                 } else {
-                                    String error_message = jsonRESULTS.getString("error_msg");
+                                    // Jika login gagal
+                                    String error_message = jsonResponse.getString("error_msg");
                                     Toast.makeText(mContext, error_message, Toast.LENGTH_SHORT).show();
                                 }
                             } catch (JSONException e) {
@@ -87,18 +99,15 @@ public class RegisterOrganizrActivity extends AppCompatActivity {
                                 e.printStackTrace();
                             }
                         } else {
-                            Log.i("debug", "onResponse: GA BERHASIL");
                             loading.dismiss();
                         }
                     }
 
                     @Override
                     public void onFailure(Call<ResponseBody> call, Throwable t) {
-                        Log.e("debug", "onFailure: ERROR > " + t.getMessage());
-                        Toast.makeText(mContext, "Koneksi Internet Bermasalah", Toast.LENGTH_SHORT).show();
+                        Log.e("debug", "onFailure: ERROR > " + t.toString());
+                        loading.dismiss();
                     }
                 });
     }
-
 }
-

@@ -1,4 +1,4 @@
-package com.android.eorganizr.userbase;
+package com.android.eorganizr.Util.RetrofitUtil;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
