@@ -3,6 +3,8 @@ package com.android.eorganizr.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -11,6 +13,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.android.eorganizr.Constant.AppConstant;
+import com.android.eorganizr.MainActivity;
 import com.android.eorganizr.R;
 
 import org.json.JSONException;
@@ -42,7 +46,7 @@ public class RegisterActivity extends AppCompatActivity {
         setContentView(R.layout.activity_register);
 
         mContext = this;
-        mApiService = ApiUtil.getAPIService();
+        mApiService = ApiUtil.getAPIService(this);
         initComponents();
 
     }
@@ -63,31 +67,37 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void requestRegister() {
-            mApiService.registerRequest(etNama.getText().toString(),
+            mApiService.registerOrganizrRequest(etNama.getText().toString(),
                     etEmail.getText().toString(),
                     etPassword.getText().toString())
                     .enqueue(new Callback<ResponseBody>() {
                         @Override
                         public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                             if (response.isSuccessful()){
-                                Log.i("debug", "onResponse: BERHASIL");
                                 loading.dismiss();
                                 try {
-                                    JSONObject jsonRESULTS = new JSONObject(response.body().string());
-                                    if (jsonRESULTS.getString("error").equals("false")){
-                                        Toast.makeText(mContext, "BERHASIL REGISTRASI", Toast.LENGTH_SHORT).show();
-                                        startActivity(new Intent(mContext, LoginActivity.class));
+                                    JSONObject jsonResponse = new JSONObject(response.body().string());
+                                    if (jsonResponse.getString("response_status").equals(AppConstant.RESPONSE_OK)){
+                                        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mContext);
+                                        SharedPreferences.Editor editor = settings.edit();
+                                        editor.putString("token", jsonResponse.getString("access_token"));
+                                        editor.commit();
+
+                                        Intent intent = new Intent(mContext, MainActivity.class);
+
+                                        startActivity(intent);
+                                        finish();
                                     } else {
-                                        String error_message = jsonRESULTS.getString("error_msg");
+                                        // Jika login gagal
+                                        String error_message = jsonResponse.getString("response_msg");
                                         Toast.makeText(mContext, error_message, Toast.LENGTH_SHORT).show();
                                     }
-                                } catch (JSONException e) {
+                                } catch (Exception e) {
                                     e.printStackTrace();
-                                } catch (IOException e) {
-                                    e.printStackTrace();
+                                    Toast.makeText(mContext,"System Error", Toast.LENGTH_SHORT).show();
                                 }
                             } else {
-                                Log.i("debug", "onResponse: GA BERHASIL");
+                                Toast.makeText(mContext,"Server Error", Toast.LENGTH_SHORT).show();
                                 loading.dismiss();
                             }
                         }

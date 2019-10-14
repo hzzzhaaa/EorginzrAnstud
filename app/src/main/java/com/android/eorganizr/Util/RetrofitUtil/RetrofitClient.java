@@ -15,15 +15,14 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitClient {
 
-    public static Context context;
+    public static SharedPreferences sharedPrefs;
     public static Retrofit retrofit = null;
     private static String authToken;
 
-    public RetrofitClient(Context ctx) {
-        context = ctx;
+    public RetrofitClient(SharedPreferences sharedPrefs) {
+        this.sharedPrefs = sharedPrefs;
     }
-
-    public static Retrofit getClient(String baseurl){
+    public static Retrofit getClient(String baseurl,Context context){
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
         interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
@@ -36,7 +35,7 @@ public class RetrofitClient {
             @Override
             public okhttp3.Response intercept(Chain chain) throws IOException {
                 okhttp3.Request request = chain.request();
-                Headers headers = request.headers().newBuilder().add("Authorization", authToken).build();
+                Headers headers = request.headers().newBuilder().add("Authorization", "Bearer " + authToken).build();
                 request = request.newBuilder().headers(headers).build();
                 return chain.proceed(request);
             }

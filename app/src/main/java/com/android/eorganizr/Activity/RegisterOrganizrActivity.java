@@ -45,7 +45,7 @@ public class RegisterOrganizrActivity extends AppCompatActivity {
         setContentView(R.layout.activity_register);
 
         mContext = this;
-        mApiService = ApiUtil.getAPIService();
+        mApiService = ApiUtil.getAPIService(this);
         initComponents();
 
     }

@@ -13,6 +13,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.android.eorganizr.Constant.AppConstant;
 import com.android.eorganizr.MainActivity;
 import com.android.eorganizr.R;
 import com.android.eorganizr.Util.RetrofitUtil.ApiUtil;
@@ -44,7 +45,7 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         mContext = this;
-        mApiService = ApiUtil.getAPIService();
+        mApiService = ApiUtil.getAPIService(this);
         initComponents();
 
     }
@@ -79,26 +80,27 @@ public class LoginActivity extends AppCompatActivity {
                             loading.dismiss();
                             try {
                                 JSONObject jsonResponse = new JSONObject(response.body().string());
-                                if (jsonResponse.getString("error").equals("false")){
+                                if (jsonResponse.getString("response_status").equals(AppConstant.RESPONSE_OK)){
                                     SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mContext);
                                     SharedPreferences.Editor editor = settings.edit();
-                                    editor.putString("token", jsonResponse.getString("token"));
+                                    editor.putString("token", jsonResponse.getString("access_token"));
                                     editor.commit();
 
                                     Intent intent = new Intent(mContext, MainActivity.class);
 
                                     startActivity(intent);
+                                    finish();
                                 } else {
                                     // Jika login gagal
-                                    String error_message = jsonResponse.getString("error_msg");
+                                    String error_message = jsonResponse.getString("response_msg");
                                     Toast.makeText(mContext, error_message, Toast.LENGTH_SHORT).show();
                                 }
-                            } catch (JSONException e) {
+                            } catch (Exception e) {
                                 e.printStackTrace();
-                            } catch (IOException e) {
-                                e.printStackTrace();
+                                Toast.makeText(mContext,"System Error", Toast.LENGTH_SHORT).show();
                             }
                         } else {
+                            Toast.makeText(mContext,"Server Error", Toast.LENGTH_SHORT).show();
                             loading.dismiss();
                         }
                     }
